@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llamacppcache-deployment
+  labels:
+    app: llamacppcache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llamacppcache
+  template:
+    metadata:
+      labels:
+        app: llamacppcache
+    spec:
+      containers:
+      - name: llamacppcache
+        imagePullPolicy: IfNotPresent
+        image: eric1901/llama-cpp-cache:0.1.0
+        ports:
+        - containerPort: 8081
+        env:
+        - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
+          value: "false"
+        - name: urls
+          value: "http://*:8081"
+        - name: Upstream__Url
+          value: "http://llama-service:8080"
+        - name: Upstream__Timeout
+          value: "01:00:00"

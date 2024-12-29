@@ -6,9 +6,9 @@ namespace Llama.Cpp.Cache.Startup
     {
         public const string CustomPolicyName = "customPolicy";
 
-        public static void Configure(OutputCacheOptions options, IConfigurationSection upstreamConfigurationSection)
+        public static void Configure(OutputCacheOptions options, IConfigurationSection configuration)
         {
-            var cacheDuration = upstreamConfigurationSection.GetValue("Timeout", TimeSpan.FromSeconds(100)) * 2;
+            var cacheDuration = configuration.GetValue("CacheDuration", TimeSpan.FromDays(1));
             options.AddPolicy(CustomPolicyName, new CustomCachePolicy(cacheDuration));
         }
     }

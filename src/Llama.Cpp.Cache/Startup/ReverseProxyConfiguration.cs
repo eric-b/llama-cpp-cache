@@ -22,14 +22,10 @@ namespace Llama.Cpp.Cache.Startup
 
         public static ClusterConfig[] GetClusters(IConfigurationSection upstreamConfigurationSection)
         {
-            // TODO: if caller is a browser, direct proxy without buffering, without in memory cache, with session affinity, to maintain chat context.
-            // All other calls (API client) are buffered and cached, without incoming cancellation token.
-            // RequestTransformContext  ?
-
             var upstreamUrl = upstreamConfigurationSection.GetValue<string>("Url");
             if (string.IsNullOrEmpty(upstreamUrl))
                 throw new ArgumentException($"Missing application setting 'Url' in section {upstreamConfigurationSection.Path}.");
-            var upstreamTimeout = upstreamConfigurationSection.GetValue<TimeSpan>("Timeout", TimeSpan.FromMinutes(10));
+            var upstreamTimeout = upstreamConfigurationSection.GetValue<TimeSpan>("Timeout");
             if (!upstreamUrl.EndsWith('/'))
                 upstreamUrl += '/';
 
@@ -44,9 +40,7 @@ namespace Llama.Cpp.Cache.Startup
                     }, 
                     HttpRequest = new Yarp.ReverseProxy.Forwarder.ForwarderRequestConfig
                     {
-                        ActivityTimeout = upstreamTimeout,
-                        // TODO: should be context aware to enable buffering only for cachable requests (not from browser with streaming enabled)
-                        AllowResponseBuffering = true
+                        ActivityTimeout = upstreamTimeout
                     }
                 }
             ];

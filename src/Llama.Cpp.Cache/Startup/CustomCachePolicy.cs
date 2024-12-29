@@ -8,7 +8,7 @@ namespace Llama.Cpp.Cache.Startup
     {
         async ValueTask IOutputCachePolicy.CacheRequestAsync(
             OutputCacheContext context,
-            CancellationToken cancellationToken)
+            CancellationToken cancellation)
         {
             var attemptOutputCaching = AttemptOutputCaching(context);
             context.EnableOutputCaching = true;
@@ -19,11 +19,12 @@ namespace Llama.Cpp.Cache.Startup
                 context.ResponseExpirationTimeSpan = cacheDuration;
                 context.HttpContext.Request.EnableBuffering();
                 var bodyStream = context.HttpContext.Request.Body;
-                JsonNode? bodyJson = await JsonNode.ParseAsync(bodyStream, cancellationToken: cancellationToken);
+                JsonNode? bodyJson = await JsonNode.ParseAsync(bodyStream, cancellationToken: cancellation);
                 var streamFlag = bodyJson?["stream"]?.GetValue<bool>() ?? false;
                 if (!streamFlag)
                 {
-                    string? json = bodyJson?.ToJsonString();// TODO: transform json to remove useless props for cache key
+                    // TODO: transform json to remove useless props for cache key
+                    string? json = bodyJson?.ToJsonString();
                     context.CacheVaryByRules.VaryByValues.Add("body", json);
                 }
                 else
@@ -40,25 +41,23 @@ namespace Llama.Cpp.Cache.Startup
         }
 
         ValueTask IOutputCachePolicy.ServeFromCacheAsync
-            (OutputCacheContext context, CancellationToken cancellationToken)
+            (OutputCacheContext context, CancellationToken cancellation)
         {
             context.HttpContext.RequestServices.GetRequiredService<ILogger<CustomCachePolicy>>().LogInformation("Response comes from cache.");
             return ValueTask.CompletedTask;
         }
 
         ValueTask IOutputCachePolicy.ServeResponseAsync
-            (OutputCacheContext context, CancellationToken cancellationToken)
+            (OutputCacheContext context, CancellationToken cancellation)
         {
             var response = context.HttpContext.Response;
 
-            // Verify existence of cookie headers
             if (!StringValues.IsNullOrEmpty(response.Headers.SetCookie))
             {
                 context.AllowCacheStorage = false;
                 return ValueTask.CompletedTask;
             }
 
-            // Check response code
             if (response.StatusCode != StatusCodes.Status200OK &&
                 response.StatusCode != StatusCodes.Status301MovedPermanently)
             {

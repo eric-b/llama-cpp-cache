@@ -1,6 +1,5 @@
 using Llama.Cpp.Cache.Components;
 using Llama.Cpp.Cache.Startup;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +7,7 @@ var services = builder.Services;
 services.AddSingleton<FixedIncomingRequestTimeout>();
 services.Configure<FixedIncomingRequestTimeoutOptions>(builder.Configuration.GetSection("Upstream"));
 
-services.AddOutputCache(options => OutputCacheConfiguration.Configure(options, builder.Configuration.GetSection("Upstream")));
+services.AddOutputCache(options => OutputCacheConfiguration.Configure(options, builder.Configuration.GetSection("OutputCache")));
 
 services.AddReverseProxy().LoadFromMemory(
     ReverseProxyConfiguration.GetRoutes(), 
