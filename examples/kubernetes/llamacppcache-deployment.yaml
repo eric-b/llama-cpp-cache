@@ -17,7 +17,7 @@ spec:
       containers:
       - name: llamacppcache
         imagePullPolicy: IfNotPresent
-        image: eric1901/llama-cpp-cache:0.1.0
+        image: eric1901/llama-cpp-cache:0.1.1
         ports:
         - containerPort: 8081
         env:
